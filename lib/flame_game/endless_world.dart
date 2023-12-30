@@ -1,6 +1,7 @@
 import 'dart:math';
-
-import 'package:endless_runner/flame_game/components/drag_background.dart';
+import 'package:endless_runner/flame_game/components/balls.dart';
+import 'package:endless_runner/flame_game/components/control_player.dart';
+import 'package:flame_forge2d/forge2d_world.dart';
 
 import '../level_selection/levels.dart';
 import '../player_progress/player_progress.dart';
@@ -27,7 +28,8 @@ import 'components/player.dart';
 ///  - The [HasGameReference] that gives the world access to a variable called
 ///  `game`, which is a reference to the game class that the world is attached
 ///  to.
-class EndlessWorld extends World with TapCallbacks, HasGameReference {
+class EndlessWorld extends Forge2DWorld
+    with TapCallbacks, DragCallbacks, HasGameReference {
   EndlessWorld({
     required this.level,
     required this.playerProgress,
@@ -54,45 +56,55 @@ class EndlessWorld extends World with TapCallbacks, HasGameReference {
   Vector2 get size => (parent as FlameGame).size;
   int levelCompletedIn = 0;
 
+  late ControlPlayer controlPlayer;
+
   /// The random number generator that is used to spawn periodic components.
   final Random _random;
 
   /// The gravity is defined in virtual pixels per second squared.
   /// These pixels are in relation to how big the [FixedResolutionViewport] is.
-  final double gravity = 30;
+  // final double gravity = 30;
 
   /// Where the ground is located in the world and things should stop falling.
   late final double groundLevel = (size.y / 2) - (size.y / 5);
 
+  late Ball ball;
   @override
   Future<void> onLoad() async {
     // Used to keep track of when the level started, so that we later can
     // calculate how long time it took to finish the level.
     timeStarted = DateTime.now();
 
+    print("world size: $size");
     // The player is the component that we control when we tap the screen, the
     // Dash in this case.
     player = Player(
-      position: Vector2(-size.x / 3, groundLevel - 900),
+      position: Vector2(0, 100),
       addScore: addScore,
       resetScore: resetScore,
     );
     add(player);
 
-    add(
-      SpawnComponent(
-        factory: (_) => Obstacle.random(
-          random: _random,
-          canSpawnTall: level.canSpawnTall,
-        ),
-        period: 5,
-        area: Rectangle.fromPoints(
-          Vector2(size.x / 4, -size.y / 2),
-          Vector2(size.x / 4, -size.y / 2),
-        ),
-        random: _random,
-      ),
-    );
+    controlPlayer = ControlPlayer();
+    add(controlPlayer);
+
+    ball = Ball(Vector2(-100, -100));
+    add(ball);
+
+    // add(
+    //   SpawnComponent(
+    //     factory: (_) => Obstacle.random(
+    //       random: _random,
+    //       canSpawnTall: level.canSpawnTall,
+    //     ),
+    //     period: 5,
+    //     area: Rectangle.fromPoints(
+    //       Vector2(size.x / 4, -size.y / 2),
+    //       Vector2(size.x / 4, -size.y / 2),
+    //     ),
+    //     random: _random,
+    //   ),
+    // );
 
     add(
       SpawnComponent.periodRange(
@@ -100,8 +112,8 @@ class EndlessWorld extends World with TapCallbacks, HasGameReference {
         minPeriod: 3.0,
         maxPeriod: 5.0 + level.number,
         area: Rectangle.fromPoints(
-          Vector2(-size.x / 4, -size.y / 2),
-          Vector2(-size.x / 4, -size.y / 2),
+          Vector2(-100, -100),
+          Vector2(-100, -100),
         ),
         random: _random,
       ),
@@ -149,10 +161,19 @@ class EndlessWorld extends World with TapCallbacks, HasGameReference {
     scoreNotifier.value = 0;
   }
 
+  // ------ DragCallbacks ------- //
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    controlPlayer.move(event.localDelta);
+  }
+
+  // ------ TapCallbacks -------- //
+
   /// [onTapDown] is called when the player taps the screen and then calculates
   /// if and how the player should jump.
   @override
   void onTapDown(TapDownEvent event) {
+    // ball.body.applyLinearImpulse(Vector2.random() * 5000);
     // Which direction the player should jump.
     // final towards = (event.localPosition - player.position)..normalize();
     // If the tap is underneath the player no jump is triggered, but if it is

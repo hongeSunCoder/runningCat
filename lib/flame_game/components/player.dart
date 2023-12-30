@@ -21,7 +21,7 @@ class Player extends SpriteAnimationGroupComponent<PlayerState>
     required this.addScore,
     required this.resetScore,
     super.position,
-  }) : super(size: Vector2.all(150), anchor: Anchor.center, priority: 1);
+  }) : super(size: Vector2.all(15), anchor: Anchor.center, priority: 1);
 
   final void Function({int amount}) addScore;
   final VoidCallback resetScore;
@@ -47,6 +47,9 @@ class Player extends SpriteAnimationGroupComponent<PlayerState>
 
   @override
   Future<void> onLoad() async {
+    double y = game.size.y / 2 - size.y;
+    print("y is $y");
+    position = Vector2(0, 80);
     // This defines the different animation states that the player can be in.
     animations = {
       PlayerState.running: await game.loadSpriteAnimation(
@@ -81,23 +84,23 @@ class Player extends SpriteAnimationGroupComponent<PlayerState>
     super.update(dt);
     // When we are in the air the gravity should affect our position and pull
     // us closer to the ground.
-    if (inAir) {
-      _gravityVelocity += world.gravity * dt;
-      position.y += _gravityVelocity;
-      if (isFalling) {
-        current = PlayerState.falling;
-      }
-    }
+    // if (inAir) {
+    //   _gravityVelocity += world.gravity.y * dt;
+    //   position.y += _gravityVelocity;
+    //   if (isFalling) {
+    //     current = PlayerState.falling;
+    //   }
+    // }
 
-    final belowGround = position.y + size.y / 2 > world.groundLevel;
-    // If the player's new position would overshoot the ground level after
-    // updating its position we need to move the player up to the ground level
-    // again.
-    if (belowGround) {
-      position.y = world.groundLevel - size.y / 2;
-      _gravityVelocity = 0;
-      current = PlayerState.running;
-    }
+    // final belowGround = position.y + size.y / 2 > world.groundLevel;
+    // // If the player's new position would overshoot the ground level after
+    // // updating its position we need to move the player up to the ground level
+    // // again.
+    // if (belowGround) {
+    //   position.y = world.groundLevel - size.y / 2;
+    //   _gravityVelocity = 0;
+    //   current = PlayerState.running;
+    // }
 
     _lastPosition.setFrom(position);
   }

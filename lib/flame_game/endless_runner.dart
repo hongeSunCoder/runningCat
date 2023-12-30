@@ -1,8 +1,8 @@
-import 'package:endless_runner/flame_game/components/drag_background.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame/src/gestures/events.dart';
+import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 
 import '../audio/audio_controller.dart';
@@ -24,15 +24,17 @@ import 'endless_world.dart';
 ///
 /// Note that both of the last are passed in to the super constructor, they
 /// could also be set inside of `onLoad` for example.
-class EndlessRunner extends FlameGame<EndlessWorld>
+class EndlessRunner extends Forge2DGame<EndlessWorld>
     with HasCollisionDetection, PanDetector {
   EndlessRunner({
     required this.level,
     required PlayerProgress playerProgress,
     required this.audioController,
   }) : super(
+          gravity: Vector2(0, 2),
+          zoom: 5,
           world: EndlessWorld(level: level, playerProgress: playerProgress),
-          camera:
+          cameraComponent:
               CameraComponent.withFixedResolution(width: 1600, height: 1600),
         );
 
@@ -49,7 +51,7 @@ class EndlessRunner extends FlameGame<EndlessWorld>
     // The backdrop is a static layer behind the world that the camera is
     // looking at, so here we add our parallax background.
     camera.backdrop.add(Background(speed: world.speed));
-    add(DragBackground());
+    // add(DragBackground());
 
     // With the `TextPaint` we define what properties the text that we are going
     // to render will have, like font family, size and color in this instance.
@@ -86,7 +88,5 @@ class EndlessRunner extends FlameGame<EndlessWorld>
   }
 
   @override
-  void onPanUpdate(DragUpdateInfo info) {
-    super.onPanUpdate(info);
-  }
+  void onPanUpdate(DragUpdateInfo info) {}
 }

@@ -1,3 +1,5 @@
+import 'package:endless_runner/flame_game/components/control_player.dart';
+
 import '../endless_world.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -5,11 +7,11 @@ import 'package:flame/components.dart';
 /// The [Point] components are the components that the [Player] should collect
 /// to finish a level. The points are represented by Flame's mascot; Ember.
 class Point extends SpriteAnimationComponent
-    with HasGameReference, HasWorldReference<EndlessWorld> {
+    with CollisionCallbacks, HasGameReference, HasWorldReference<EndlessWorld> {
   Point() : super(size: spriteSize, anchor: Anchor.center);
 
   static final Vector2 spriteSize = Vector2.all(100);
-  final speed = 200;
+  final speed = 20;
 
   @override
   Future<void> onLoad() async {
@@ -51,6 +53,16 @@ class Point extends SpriteAnimationComponent
     // we know that it is no longer visible and it can be removed.
     if (position.y + size.y / 2 > world.size.y / 2) {
       removeFromParent();
+    }
+  }
+
+  @override
+  void onCollisionStart(
+      Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollisionStart(intersectionPoints, other);
+
+    if (other is ControlPlayer) {
+      print("point collide with controlPlayer");
     }
   }
 }
